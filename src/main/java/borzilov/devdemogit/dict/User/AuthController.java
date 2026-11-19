@@ -10,10 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,6 +38,7 @@ public class AuthController {
     ) {
         log.info("Called login");
         var response = authService.login(request);
+        // Сохраняем ID пользователя в сессию для AuthInterceptor
         session.setAttribute(AuthInterceptor.USER_ID_ATTR, response.id());
         return ResponseEntity.ok(response);
     }
@@ -50,4 +50,16 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    // --- НОВЫЙ МЕТОД ДЛЯ ФРОНТЕНДА ---
+    // Фронтенд (app.js и index.html) проверяет, залогинен ли пользователь, через GET /auth/me
+    @GetMapping("/me")
+    public ResponseEntity<?> me(
+            @SessionAttribute(name = AuthInterceptor.USER_ID_ATTR, required = false) Long userId
+    ) {
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        // Возвращаем ID пользователя, чтобы фронт понял, что сессия жива
+        return ResponseEntity.ok(Map.of("userId", userId));
+    }
 }
