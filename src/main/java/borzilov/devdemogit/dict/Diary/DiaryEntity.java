@@ -6,7 +6,8 @@ import lombok.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Table(name = "diary",
         uniqueConstraints = @UniqueConstraint(
@@ -21,6 +22,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DiaryEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,34 +32,36 @@ public class DiaryEntity {
     private UserEntity user;
 
     @Column(nullable = false)
-    private String target;
-
-    @Column(nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false)
-    private LocalTime startTime;
-
-    @Column(nullable = false)
-    private LocalTime endTime;
-
-    @Column(nullable = false)
     private Integer hoursOfSleep;
-
-    @Column(nullable = false)
     private Integer qualityOfSleep;
-
-    @Column(nullable = false)
     private Integer level;
-
-    @Column(nullable = false)
     private Integer productivity;
-
-    @Column(nullable = false)
     private Integer ratingOfDay;
 
-    @Column(nullable = false)
-    private String resultOfDay;
+    @Column(length = 4000)
+    private String reflection;
+
+    @Column(length = 1000)
+    private String oneSentence;
+
+    // Добавлен @OrderColumn, чтобы Hibernate не падал с MultipleBagFetchException
+    // и сохранял порядок добавления элементов
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "position")
+    @Builder.Default
+    private List<TimeLineItem> timeline = new ArrayList<>();
+
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "position")
+    @Builder.Default
+    private List<Goal> goals = new ArrayList<>();
+
+    @OneToMany(mappedBy = "diary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "position")
+    @Builder.Default
+    private List<Habit> habits = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -65,13 +69,14 @@ public class DiaryEntity {
     @Column(nullable = false)
     private Instant updatedAt;
 
-    @PreUpdate
-    public void preUpdate() {this.updatedAt = Instant.now();}
-
     @PrePersist
     public void prePersist() {
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = Instant.now();
+    }
 }

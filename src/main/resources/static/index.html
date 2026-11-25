@@ -4,33 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DiaryApp — Вход</title>
+    <!-- ВАЖНО: путь /css/style.css, так как папка css лежит внутри static -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="auth-body">
-<div class="auth-card">
-    <h1 class="logo">📖 DiaryApp</h1>
-    <p class="subtitle">Личный дневник, который живёт только на вашем компьютере</p>
 
-    <form id="authForm" onsubmit="return false">
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="logo text-center">📖 DiaryApp</h1>
+        <p class="muted text-center" style="margin-bottom: 20px;">Войдите в свой личный дневник</p>
+
         <div class="field">
-            <input id="login" placeholder="Логин" autocomplete="username" required>
+            <label for="login">Логин</label>
+            <input type="text" id="login" placeholder="Ваш логин" autocomplete="username">
         </div>
+
         <div class="field">
-            <input id="password" type="password" placeholder="Пароль" autocomplete="current-password" required>
+            <label for="password">Пароль</label>
+            <input type="password" id="password" placeholder="Ваш пароль" autocomplete="current-password">
         </div>
-        <p id="err" class="error"></p>
-        <div class="row">
-            <button type="button" onclick="Auth.login()">Войти</button>
-            <button type="button" class="secondary" onclick="Auth.register()">Регистрация</button>
+
+        <!-- Блок для вывода ошибок -->
+        <p id="err" class="error-text"></p>
+
+        <div class="auth-actions">
+            <button class="btn primary w-full" onclick="Auth.login()">Войти</button>
+            <button class="btn secondary w-full" onclick="Auth.register()">Регистрация</button>
         </div>
-    </form>
+    </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script>
-    // Если уже залогинен — сразу на главную
-    Api.get('/auth/me').then(me => { if (me) location.href = '/app.html'; }).catch(() => {});
-</script>
 </body>
 </html>

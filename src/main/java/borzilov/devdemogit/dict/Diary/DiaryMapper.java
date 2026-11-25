@@ -2,50 +2,85 @@ package borzilov.devdemogit.dict.Diary;
 
 import org.springframework.stereotype.Component;
 
+import java.util.stream.Collectors;
+
 @Component
 public class DiaryMapper {
 
-    // Преобразование из Entity (БД) в Domain Record (для API)
-    public Diary toDomain(DiaryEntity diaryEntity) {
-        if (diaryEntity == null) {
-            return null;
-        }
+    public Diary toDomain(DiaryEntity e) {
+        if (e == null) return null;
 
         return new Diary(
-                diaryEntity.getId(),
-                diaryEntity.getTarget(),
-                diaryEntity.getDate(),
-                diaryEntity.getStartTime(),
-                diaryEntity.getEndTime(),
-                diaryEntity.getHoursOfSleep(),
-                diaryEntity.getQualityOfSleep(),
-                diaryEntity.getLevel(),
-                diaryEntity.getProductivity(),
-                diaryEntity.getRatingOfDay(),
-                diaryEntity.getResultOfDay()
+                e.getId(),
+                e.getDate(),
+                e.getHoursOfSleep(),
+                e.getQualityOfSleep(),
+                e.getLevel(),
+                e.getProductivity(),
+                e.getRatingOfDay(),
+                e.getReflection(),
+                e.getOneSentence(),
+
+                e.getTimeline().stream()
+                        .map(t -> new Diary.TimeLineItemDto(
+                                t.getId(), t.getTimeFrom(), t.getTimeTo(), t.getActivity()))
+                        .collect(Collectors.toList()),
+
+                e.getGoals().stream()
+                        .map(g -> new Diary.GoalDto(
+                                g.getId(), g.getText(), g.getCompleted()))
+                        .collect(Collectors.toList()),
+
+                e.getHabits().stream()
+                        .map(h -> new Diary.HabitDto(
+                                h.getId(), h.getName(), h.getCompleted()))
+                        .collect(Collectors.toList())
         );
     }
 
-    // Преобразование из Domain Record в Entity для сохранения в БД
-    public DiaryEntity toEntity(Diary diaryToEntity) {
-        if (diaryToEntity == null) {
-            return null;
-        }
+    public DiaryEntity toEntity(Diary d) {
+        if (d == null) return null;
 
-        // Используем Builder, чтобы код был читаемым и безопасным к изменению порядка полей
-        return DiaryEntity.builder()
-                .id(diaryToEntity.id())
-                .target(diaryToEntity.target())
-                .date(diaryToEntity.date())
-                .startTime(diaryToEntity.startTime())
-                .endTime(diaryToEntity.endTime())
-                .hoursOfSleep(diaryToEntity.hoursOfSleep())
-                .qualityOfSleep(diaryToEntity.qualityOfSleep())
-                .level(diaryToEntity.level())
-                .productivity(diaryToEntity.productivity())
-                .ratingOfDay(diaryToEntity.ratingOfDay())
-                .resultOfDay(diaryToEntity.resultOfDay())
-                // Поля createAt и updateAt не заполняем, за них отвечают @PrePersist/@PreUpdate
+        DiaryEntity entity = DiaryEntity.builder()
+                .id(d.id())
+                .date(d.date())
+                .hoursOfSleep(d.hoursOfSleep())
+                .qualityOfSleep(d.qualityOfSleep())
+                .level(d.level())
+                .productivity(d.productivity())
+                .ratingOfDay(d.ratingOfDay())
+                .reflection(d.reflection())
+                .oneSentence(d.oneSentence())
                 .build();
+
+        if (d.timeline() != null) {
+            for (var t : d.timeline()) {
+                entity.getTimeline().add(TimeLineItem.builder()
+                        .timeFrom(t.timeFrom())
+                        .timeTo(t.timeTo())
+                        .activity(t.activity())
+                        .diary(entity)
+                        .build());
+            }
+        }
+        if (d.goals() != null) {
+            for (var g : d.goals()) {
+                entity.getGoals().add(Goal.builder()
+                        .text(g.text())
+                        .completed(Boolean.TRUE.equals(g.completed()))
+                        .diary(entity)
+                        .build());
+            }
+        }
+        if (d.habits() != null) {
+            for (var h : d.habits()) {
+                entity.getHabits().add(Habit.builder()
+                        .name(h.name())
+                        .completed(Boolean.TRUE.equals(h.completed()))
+                        .diary(entity)
+                        .build());
+            }
+        }
+        return entity;
     }
 }

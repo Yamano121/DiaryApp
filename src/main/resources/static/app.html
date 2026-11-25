@@ -7,78 +7,133 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div class="app">
-    <aside class="sidebar">
-        <h2 class="logo">📖 DiaryApp</h2>
-        <nav>
-            <a href="#" class="nav-link active" data-view="diary">📝 Дневник дня</a>
-            <a href="#" class="nav-link" data-view="habits">🔥 Привычки</a>
-        </nav>
-        <button class="logout" onclick="Auth.logout()">🚪 Выйти</button>
+<div class="app" id="appLayout">
+
+    <!-- ============================================================
+         БОКОВАЯ ПАНЕЛЬ (SIDEBAR)
+         ============================================================ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="logo">📖 <span class="logo-text">DiaryApp</span></h2>
+            <!-- Кнопка выхода перенесена сюда -->
+            <button class="btn-icon logout-btn" onclick="Auth.logout()" title="Выйти">
+                🚪
+            </button>
+        </div>
+
+        <div class="sidebar-content">
+            <nav>
+                <a href="#" class="nav-link active" data-view="diary">📝 <span class="nav-text">Дневник дня</span></a>
+            </nav>
+
+            <!-- ================= КАЛЕНДАРЬ ================= -->
+            <div class="calendar-wrapper">
+                <div class="calendar-header">
+                    <button id="prevMonth" class="btn-x" type="button">◀</button>
+                    <span id="currentMonthLabel">Ноябрь 2026</span>
+                    <button id="nextMonth" class="btn-x" type="button">▶</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
     </aside>
 
+    <!-- ============================================================
+         ОСНОВНАЯ ОБЛАСТЬ
+         ============================================================ -->
     <main class="main">
-        <!-- ================== ДНЕВНИК ================== -->
         <section id="view-diary">
+
             <header class="view-header">
-                <h1>Дневник дня</h1>
-                <input type="date" id="date" class="date-picker">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button id="toggleSidebarBtn" class="btn-icon" type="button">☰</button>
+                    <h1 id="viewTitle">Дневник дня</h1>
+                </div>
+
+                <div class="header-actions">
+                    <span id="status" class="status"></span>
+                    <button onclick="Diary.save()" class="btn primary" type="button">💾 Сохранить</button>
+                </div>
             </header>
 
+            <!-- ================= МЕТРИКИ ================= -->
             <div class="card">
-                <h3>Метрики дня</h3>
+                <h3>📈 Метрики дня</h3>
                 <div class="metrics">
-                    <div class="field"><label>Часы сна (0–24)</label><input type="number" id="hoursOfSleep" min="0" max="24" value="8"></div>
-                    <div class="field"><label>Качество сна (0–10)</label><input type="number" id="qualityOfSleep" min="0" max="10" value="7"></div>
-                    <div class="field"><label>Уровень энергии (0–10)</label><input type="number" id="level" min="0" max="10" value="7"></div>
-                    <div class="field"><label>Продуктивность (0–10)</label><input type="number" id="productivity" min="0" max="10" value="7"></div>
-                    <div class="field"><label>Оценка дня (0–10)</label><input type="number" id="ratingOfDay" min="0" max="10" value="7"></div>
+                    <div class="field">
+                        <label for="hoursOfSleep">Часы сна (0–24)</label>
+                        <input type="number" id="hoursOfSleep" min="0" max="24" step="0.5" placeholder="—" oninput="Diary.markDirty()">
+                    </div>
+                    <div class="field">
+                        <label for="qualityOfSleep">Качество сна (0–10)</label>
+                        <input type="number" id="qualityOfSleep" min="0" max="10" placeholder="—" oninput="Diary.markDirty()">
+                    </div>
+                    <div class="field">
+                        <label for="level">Уровень энергии (0–10)</label>
+                        <input type="number" id="level" min="0" max="10" placeholder="—" oninput="Diary.markDirty()">
+                    </div>
+                    <div class="field">
+                        <label for="productivity">Продуктивность (0–10)</label>
+                        <input type="number" id="productivity" min="0" max="10" placeholder="—" oninput="Diary.markDirty()">
+                    </div>
+                    <div class="field">
+                        <label for="ratingOfDay">Оценка дня (0–10)</label>
+                        <input type="number" id="ratingOfDay" min="0" max="10" placeholder="—" oninput="Diary.markDirty()">
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>Цель и тайм-лайн</h3>
-                <div class="field"><label>Цель дня</label><input id="target" placeholder="Например: дописать главу"></div>
-                <div class="metrics" style="grid-template-columns:1fr 1fr">
-                    <div class="field"><label>С</label><input type="time" id="startTime" value="09:00"></div>
-                    <div class="field"><label>По</label><input type="time" id="endTime" value="18:00"></div>
+                <div class="card-head">
+                    <h3>⏱ Таймлайн</h3>
+                    <button onclick="Diary.addTimeline()" class="btn small" type="button">+ интервал</button>
                 </div>
+                <div id="timeline" class="list"></div>
             </div>
 
             <div class="card">
-                <h3>Итоги дня</h3>
+                <div class="card-head">
+                    <h3>🎯 Цели</h3>
+                    <button onclick="Diary.addGoal()" class="btn small" type="button">+ цель</button>
+                </div>
+                <div id="goals" class="list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3>✅ Привычки</h3>
+                    <button onclick="Diary.addHabit()" class="btn small" type="button">+ привычка</button>
+                </div>
+                <div id="habits" class="list"></div>
+            </div>
+
+            <!-- ================= ИТОГИ ДНЯ ================= -->
+            <div class="card">
+                <h3>📝 Итоги дня</h3>
                 <div class="field">
-                    <label>Рефлексия</label>
-                    <textarea id="resultOfDay" rows="5" placeholder="Что прошло хорошо, что можно улучшить..."></textarea>
+                    <label for="reflection">Рефлексия</label>
+                    <textarea id="reflection" rows="4" placeholder="—" oninput="Diary.markDirty()"></textarea>
+                </div>
+                <div class="field">
+                    <label for="oneSentence">Одно предложение дня</label>
+                    <input type="text" id="oneSentence" placeholder="—" oninput="Diary.markDirty()">
                 </div>
             </div>
 
-            <div class="row actions">
-                <button onclick="Diary.save()">💾 Сохранить день</button>
-                <button class="secondary" onclick="Diary.load()">📂 Загрузить дату</button>
-            </div>
-        </section>
-
-        <!-- ================== ПРИВЫЧКИ ================== -->
-        <section id="view-habits" style="display:none">
-            <header class="view-header"><h1>Привычки</h1></header>
-
-            <div class="card">
-                <h3>Добавить привычку</h3>
-                <div class="row">
-                    <input id="habitTitle" placeholder="Например: читать 30 страниц">
-                    <button onclick="Habits.add()" style="max-width:160px">Добавить</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Мои привычки</h3>
-                <div class="habit-list" id="habitList">
-                    <p class="muted">Пока нет привычек</p>
-                </div>
-            </div>
         </section>
     </main>
+</div>
+
+<!-- ================= МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ ================= -->
+<div id="confirmModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>Несохранённые изменения</h3>
+        <p>Вы изменили заметку, но не нажали «Сохранить». Если вы перейдёте на другую дату, изменения будут потеряны.</p>
+        <div class="modal-actions">
+            <button class="btn secondary" onclick="Diary.closeModal()">Отмена</button>
+            <button class="btn primary" onclick="Diary.confirmDiscard()">Всё равно перейти</button>
+        </div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -86,7 +141,6 @@
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/diary.js"></script>
-<script src="/js/habits.js"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>
